@@ -6,6 +6,8 @@
 
 clear;clc;
 data=cell(24,6);
+! rm acclist.txt
+! ls *..*[12] >> acclist.txt
 fid=fopen('acclist.txt','r');
 
 ! ls *..EW1 >> acc.ew1
@@ -18,6 +20,8 @@ fid=fopen('acclist.txt','r');
 for ii=1:144
     fn=fgetl(fid);
     [t,acc]=readborehole(fn);
+    [t,acc]=rtrend(t,acc);
+    [t,acc]=rmean(t,acc);
     nrow=floor((ii-0.3)/6)+1;
     ncol=ii-(nrow-1)*6;
     data{nrow,ncol}=[t,acc]; % () cell indexing; {} content addressing
