@@ -1,0 +1,24 @@
+% Script file: boreholedata.m
+% read the borehole data to a cell array (24,6)
+% a row is represent the same station records, 
+% the columns represent EW1 EW2 NS1 NS2 UD1 UD2
+% 2 in surface; 1 in depth
+
+clear;clc;
+data=cell(24,6);
+fid=fopen('acclist.txt','r');
+
+! ls *..EW1 >> acc.ew1
+! ls *..EW2 >> acc.ew2
+! ls *..NS1 >> acc.ns1
+! ls *..NS2 >> acc.ns2
+! ls *..UD1 >> acc.ud1
+! ls *..UD2 >> acc.ud2
+
+for ii=1:144
+    fn=fgetl(fid);
+    [t,acc]=readborehole(fn);
+    nrow=floor((ii-0.3)/6)+1;
+    ncol=ii-(nrow-1)*6;
+    data{nrow,ncol}=[t,acc]; % () cell indexing; {} content addressing
+end
