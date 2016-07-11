@@ -1,0 +1,10 @@
+function [x1,y1]=rmean(x,y)
+% RMEAN: remove mean of array y
+
+if length(x) ~= length(y)
+    error('Array x and y must have the same length ! \n ');
+end
+
+temp=mean(y);
+y1=y-temp;
+x1=x;
