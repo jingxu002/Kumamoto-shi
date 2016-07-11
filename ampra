@@ -1,0 +1,114 @@
+% Script file: ampra.m
+% AMPRA: AMPLITUDE SPECTRA RATIO OF BOREHOLEACCDATA
+% Writor: Jing Xu  date: 2016/07/06  version: 1.0
+%{
+Define variables:
+    data           acceleration time history (t,acc)
+                      ew1 ew2 ns1 ns2 ud1 ud2
+    hora           horizontal amplitude spectra ratio
+    vhra           ratio between vertical adn horizontal amplitude spectra
+    ho1,ho2        horizontal acceleration for surface and depth, respectively
+    v1,v2          vertical acceleration for surface and depth,respectively
+    fr             sample frequency (Hz)
+%}
+
+
+clear;clc;
+load boreholeaccdata
+hora=cell(24,1);
+vhra=cell(24,1);
+ho1=cell(24,1);
+ho2=cell(24,1);
+v1=cell(24,1);
+v2=v1;
+fr=ones(24,1);
+f=v1;
+
+figure(2)
+
+for jj=1:24
+    for kk=1:6
+        plot(data{jj,kk}(:,1),data{jj,kk}(:,2),'linewidth',1, 'color',rand([1 3]));
+        hold on; box off;
+    end
+end
+hold off
+xlabel('Time(sec)');
+ylabel('Acceleration(gal)')
+
+% Create figure
+f1 = figure; 
+% Create axes
+axes1 = axes('Parent',f1);
+
+% Set property of graphic handle figure1 && axes1
+set(f1, 'PaperPositionMode', 'manual');
+set(f1, 'PaperUnits', 'centimeters');
+set(f1, 'PaperSize',[8 6])   % unit: cm
+set(axes1,'fontsize',12);
+% set axes position: [left bottom width height]
+set(axes1,'Outerposition', [0 0 1 1]); 
+set(axes1,'linewidth',1);
+
+
+for ii=1:24
+    % sample frequency
+    fr(ii)=data{ii,1}(2,1)-data{ii,1}(1,1);
+    fr(ii)=1/fr(ii);
+    
+    % horizontal ground motion in surface
+    ho1{ii,1}=sqrt(data{ii,1}(:,2).^2+data{ii,3}(:,2).^2);
+    
+    % need to filter waveform
+    % Design and apply the bandpass filter
+    acc1=ho1{ii,1};
+    fs=fr(ii);
+    order    = 6;
+    fcutlow  = 0.1;
+    fcuthigh = 10;
+    [b,a] = butter(order,[fcutlow,fcuthigh]/(fs/2), 'bandpass');
+    acc1= filter(b,a,acc1);
+  
+    % fft translation
+    numsamps=2^nextpow2(length(acc1));
+    motion=zeros(numsamps,1);
+    motion(2:length(acc1)+1)=acc1;
+    fftmotion1=fft(motion,numsamps);
+    
+    % horizontal ground motion in depth
+    ho2{ii,1}=sqrt(data{ii,2}(:,2).^2+data{ii,4}(:,2).^2);
+    acc2=ho2{ii,1};
+    % Design and apply the bandpass filter
+    fs=fr(ii);
+    order    = 6;
+    fcutlow  = 0.1;
+    fcuthigh = 10;
+    [b,a]    = butter(order,[fcutlow,fcuthigh]/(fs/2), 'bandpass');
+    acc2= filter(b,a,acc2);
+    
+    % fft translation
+    numsamps=2^nextpow2(length(acc2));
+    motion=zeros(numsamps,1);
+    motion(2:length(acc1)+1)=acc2;
+    fftmotion2=fft(motion,numsamps);
+    
+    % horizontal amplitude spectra ratio
+    hora{ii,1}=fftmotion1./fftmotion2;
+    f{ii,1}=fr(ii)/2*linspace(0,1,numsamps/2+1);
+    
+    % plot amplitude spectra ratio
+    axis([0.1 10 0.5 2]);
+    loglog(f{ii,1}, hora{ii,1}(1:numsamps/2+1),'linewidth',2,'color',rand([1 3]));
+    hold on; box off;
+end
+
+
+% set legend positon and content
+% legend1=legend('\beta=0.3', '\beta=0.4', '\beta=0.5','\beta=0.6');
+% set(legend1,'Position',[0.6 0.2 0.2 0.3]);
+% set labels
+xlabel('Frequency(Hz)');
+ylabel('Amplitude ratio');
+hold off;
+
+print -depsc -tiff -r300 amplitude_ratio
