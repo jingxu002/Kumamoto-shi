@@ -1,0 +1,26 @@
+function [x,y]=rtrend(a,b)
+% RTREND: remove trend in data a and b
+%  A least-squares curve-fit to a straight line is calculated.  
+% This straight line (trend and intercept) is then
+% "subtracted" from the data.  
+% The data does not have to be evenly spaced.
+
+%{
+Define variables:
+a,b        input data
+x,y        output data
+sl         slope of straight line
+yint       intercept of the straight line
+%}
+
+if length(a) ~= length(b)
+    error('Array of inputs must have the same length');
+end
+
+n=length(a);
+
+sl=(n*sum(a.*b)-sum(a)*sum(b))/(n*sum(a.*a)-(sum(a))^2);
+yint=(sum(b)-sl*sum(a))/n;
+
+x=a;
+y=b-sl*a-yint;
